@@ -24,7 +24,9 @@ public class Client {
 			dataOutputStream.writeUTF(msg);
 			InputStream inputStream = client.getInputStream();
 			DataInputStream datain = new DataInputStream(inputStream);
-			cact.onRecv(datain.readUTF());
+			if(cact != null){
+				cact.onRecv(datain.readUTF());
+			}
 			client.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

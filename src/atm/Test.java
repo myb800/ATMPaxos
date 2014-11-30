@@ -1,7 +1,9 @@
 package atm;
 
+import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class Test {
 	private static void test_server_client(){
@@ -44,7 +46,7 @@ public class Test {
 	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		test_server_client();
+		
 	}
 
 }
