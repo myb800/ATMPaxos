@@ -1,12 +1,12 @@
 package atm;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 
 
 public class Client {
@@ -30,8 +30,9 @@ public class Client {
 			client.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			if(e instanceof SocketTimeoutException) {
-				cact.onTimeOut();
+			if(e instanceof SocketTimeoutException ||
+					e instanceof EOFException) {
+				cact.onNotResponse();
 				return;
 			}
 			e.printStackTrace();

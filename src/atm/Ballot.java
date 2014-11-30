@@ -17,7 +17,7 @@ public class Ballot {
 	public static Ballot parse(String ballotNum,String processId){
 		return new Ballot(Integer.parseInt(ballotNum), Integer.parseInt(processId));
 	}
-	Ballot(int ballocNum,int processId){
+	Ballot(int ballotNum,int processId){
 		this.ballotNum = ballotNum;
 		this.processId = processId;
 	}

@@ -65,7 +65,7 @@ public class PaxosLeader {
 		}
 
 		@Override
-		public void onTimeOut() {
+		public void onNotResponse() {
 			
 		}
 		
@@ -83,7 +83,7 @@ public class PaxosLeader {
 		}
 
 		@Override
-		public void onTimeOut() {
+		public void onNotResponse() {
 			
 		}
 		

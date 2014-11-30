@@ -1,7 +1,5 @@
 package atm;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
 
 public class PaxosClient {
 	public boolean isHasAccepted() {

@@ -29,6 +29,9 @@ public class PaxosClientAll implements ServerAction{
 				replyStream.writeUTF("ack," + ballot.toString() + "," 
 								   + acceptBallot.toString() + "," + val + msg.id);
 			} else if(msg.type.equals("prepare") && sessions.containsKey(msg.id)){
+				if(ballot.greaterThan(msg.bNum)){
+					return;
+				}
 				ballot = msg.bNum;
 				replyStream.writeUTF("ack," + ballot.toString() + "," 
 						   + acceptBallot.toString() + "," + val + msg.id);
