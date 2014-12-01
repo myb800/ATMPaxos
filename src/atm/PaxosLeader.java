@@ -1,40 +1,53 @@
 package atm;
-
-import java.io.DataOutputStream;
+// this paxos requires the number proposed to be greater than 0
 
 public class PaxosLeader {
-	private String state = "idle";
+	private String state = "prepare";
 	private Node[] clients;
-	private int proposedValue = 0;
-	public PaxosLeader(Node[] clients){
+	private int decidedVal;
+	private String paxosId;
+	public PaxosLeader(Node[] clients,String paxosId){
 		this.clients = clients;
+		this.paxosId = paxosId;
 	}
 	
-	public void runPaxos(int value,Ballot ballot,String paxosId){
+	public void runPaxos(int value,Ballot ballot){
 		if(state.equals("prepare")){
 			Prepare prepareAction = new Prepare();
+			Log.log("paxos leader broadcast:" + "prepare," + ballot.toString() + "," + paxosId);
 			for(Node node:clients){
-				Client.send(node.port, "prepare," + ballot.toString() + paxosId, node.address, prepareAction);				
+				Client.send(node.port, "prepare," + ballot.toString() + "," + paxosId, node.address, prepareAction);				
 			}
 			if(prepareAction.getVote() > clients.length / 2){
 				state = "propose";
-				runPaxos(prepareAction.getVal(), ballot, paxosId);
+				if(prepareAction.getVal() != -1){ //not yet decided
+					runPaxos(prepareAction.getVal(), ballot);
+				} else {
+					runPaxos(value, ballot);
+				}
 			} else {
 				ballot.ballotNum++;
-				runPaxos(value, ballot, paxosId);
+				runPaxos(value, ballot);
 			}
 		} else if(state.equals("propose")){
 			Propose proposeAction = new Propose();
+			Log.log("paxos leader broadcast:" + "accept," + ballot.toString() + "," + value + "," + paxosId);
 			for(Node node:clients){
-				Client.send(node.port, "propose," + ballot.toString() + paxosId, node.address, proposeAction);				
+				Client.send(node.port, "accept," + ballot.toString() + "," + value + "," + paxosId, node.address, proposeAction);				
 			}
 			if(proposeAction.getVote() > clients.length / 2){
 				state = "decide";
-				runPaxos(value, ballot, paxosId);
+				runPaxos(value, ballot);
 			} else {
 				state = "prepare";
 				ballot.ballotNum++;
-				runPaxos(value, ballot, paxosId);
+				runPaxos(value, ballot);
+			}
+		} else if(state.equals("decide")){
+			decidedVal = value;
+			Log.log("paxos leader broadcast:" + "decide," + value + "," + paxosId);
+			for(Node node:clients){
+				Client.send(node.port, "decide," + value + "," + paxosId, node.address, null);				
 			}
 		}
 		
@@ -56,7 +69,8 @@ public class PaxosLeader {
 		public void onRecv(String data) {
 			// data = ack message
 			Message msg = Message.parse(data);
-			if(msg.bNum == null || msg.bNum.greaterThan(maxBallot)){
+			Log.log("paxos leader receive:" + data);
+			if(maxBallot == null || msg.bNum.greaterThan(maxBallot)){
 				maxBallot = msg.bNum;
 				val = msg.val;
 			}
@@ -79,6 +93,7 @@ public class PaxosLeader {
 		@Override
 		public void onRecv(String data) {
 			// data = accept message
+			Log.log("paxos leader receive:" + data);
 			vote++;
 		}
 
@@ -87,5 +102,13 @@ public class PaxosLeader {
 			
 		}
 		
+	}
+	
+	public int getDecidedVal() {
+		return decidedVal;
+	}
+	
+	public String getPaxosId() {
+		return paxosId;
 	}
 }

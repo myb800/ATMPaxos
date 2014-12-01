@@ -13,7 +13,7 @@ public class Client {
 	public static void send(int p,String msg,String serverName,ClientAction cact) {
 		int port = p;
 //		System.out.println("Connecting to " + serverName + " on port " + port);
-		
+			
 		try {
 			Socket client = new Socket(serverName,port);
 			client.setSoTimeout(1000);

@@ -29,9 +29,17 @@ public class Test {
 		});
 
 	}
+	private static void test_paxos(){
+		Node[] clients = new Node[1];
+		clients[0] = new Node("127.0.0.1", 1006);
+		new Thread(new Server(1006, new PaxosClientAll(clients))).start();
+		
+		PaxosLeader pl = new PaxosLeader(clients, "3");
+		pl.runPaxos(1, new Ballot(1, 1));
+	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		test_server_client();
+		 test_paxos();
 	}
 
 }

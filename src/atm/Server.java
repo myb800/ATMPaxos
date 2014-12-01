@@ -23,14 +23,14 @@ public class Server implements Runnable{
 	   public void run() {
 	      while(true) {
 	         try {
-//	            System.out.println("Waiting for client on port " +
-//	            serverSocket.getLocalPort() + "...");
 	            Socket server = serverSocket.accept();
 //	            System.out.println("Just connected to "
 //	                  + server.getRemoteSocketAddress());
 	            DataInputStream inputStream = new DataInputStream(server.getInputStream());
 	            DataOutputStream outputStream = new DataOutputStream(server.getOutputStream());
-	            sact.onRecv(inputStream.readUTF(), outputStream);
+	            String data = inputStream.readUTF();
+	            //System.out.println("server recv:" + data);
+	            sact.onRecv(data, outputStream);
 	            server.close();
 	         } catch(SocketTimeoutException s) {
 	            System.out.println("Socket time out");
