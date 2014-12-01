@@ -36,14 +36,20 @@ public class PaxosClient {
 		return paxosId;
 	}
 
-
+	public String getVarName() {
+		return varName;
+	}
+	
 	private String status;
 	private String paxosId;
+	private String varName;
 	private int vote = 0;
 	private boolean hasAccepted = false;
 	
-	public PaxosClient(String id) {
+	public PaxosClient(String id,String varName) {
 		this.paxosId = id;
 		status = "idle";
+		this.varName = varName;
 	}
+
 }

@@ -6,17 +6,19 @@ public class PaxosLeader {
 	private Node[] clients;
 	private int decidedVal;
 	private String paxosId;
-	public PaxosLeader(Node[] clients,String paxosId){
+	private String varName;
+	public PaxosLeader(Node[] clients,String paxosId,String varName){
 		this.clients = clients;
 		this.paxosId = paxosId;
+		this.varName = varName;
 	}
 	
 	public void runPaxos(int value,Ballot ballot){
 		if(state.equals("prepare")){
 			Prepare prepareAction = new Prepare();
-			Log.log("paxos leader broadcast:" + "prepare," + ballot.toString() + "," + paxosId);
+			Log.log("paxos leader broadcast:" + "prepare," + ballot.toString() + "," + paxosId + "," + varName);
 			for(Node node:clients){
-				Client.send(node.port, "prepare," + ballot.toString() + "," + paxosId, node.address, prepareAction);				
+				Client.send(node.port, "prepare," + ballot.toString() + "," + paxosId + "," + varName, node.address, prepareAction);				
 			}
 			if(prepareAction.getVote() > clients.length / 2){
 				state = "propose";

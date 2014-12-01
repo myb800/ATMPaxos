@@ -6,14 +6,15 @@ import java.util.HashMap;
 
 public class PaxosClientAll implements ServerAction{
 	private HashMap<String,PaxosClient> sessions = null;
-	private static Ballot acceptBallot = null;
-	private static Ballot ballot;
-	private static int val = -1;
+	private HashMap<String,Ballot> acceptBallot = null;
+	private HashMap<String,Ballot> ballot;
+	private HashMap<String,Integer> val;
 	private Node[] clients;
 	public PaxosClientAll(Node[] clients) {
 		sessions = new HashMap<String,PaxosClient>();
-		ballot = new Ballot(0, 0);
-		acceptBallot = new Ballot(0, 0);
+		ballot = new HashMap<String,Ballot>();
+		acceptBallot = new HashMap<String,Ballot>();
+		val = new HashMap<String,Integer>();
 		this.clients = clients;
 	}
 	@Override
@@ -22,57 +23,65 @@ public class PaxosClientAll implements ServerAction{
 		Message msg = Message.parse(data);
 		try {
 			if(msg.type.equals("prepare") && !sessions.containsKey(msg.id)){
-				if(ballot.greaterThan(msg.bNum)){
+				if(!val.containsKey(msg.varName)){
+					val.put(msg.varName, -1);
+					acceptBallot.put(msg.varName, new Ballot(0,0));
+					ballot.put(msg.varName, new Ballot(0,0));
+				}
+				if(ballot.get(msg.varName).greaterThan(msg.bNum)){
 					return;
 				}
-				ballot = msg.bNum;
-				PaxosClient newSession = new PaxosClient(msg.id);
+				ballot.put(msg.varName, msg.bNum);
+				PaxosClient newSession = new PaxosClient(msg.id,msg.varName);
 				sessions.put(msg.id, newSession);
 				newSession.setStatus("wait-proposal");
-				Log.log("paxos client send back:" + "ack," + ballot.toString() + "," 
-						   + acceptBallot.toString() + "," + val + "," + msg.id);
-				replyStream.writeUTF("ack," + ballot.toString() + "," 
-								   + acceptBallot.toString() + "," + val + "," + msg.id);
+				Log.log("paxos client send back:" + "ack," + ballot.get(msg.varName).toString() + "," 
+						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id);
+				replyStream.writeUTF("ack," + ballot.get(msg.varName).toString() + "," 
+						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id);
 			} else if(msg.type.equals("prepare") && sessions.containsKey(msg.id)){
-				if(ballot.greaterThan(msg.bNum)){
+				if(ballot.get(msg.varName).greaterThan(msg.bNum)){
 					return;
 				}
-				ballot = msg.bNum;
-				Log.log("ack," + ballot.toString() + "," 
-						   + acceptBallot.toString() + "," + val + "," + msg.id);
-				replyStream.writeUTF("ack," + ballot.toString() + "," 
-						   + acceptBallot.toString() + "," + val + "," + msg.id);
+				ballot.put(msg.varName, msg.bNum);
+				Log.log("ack," + ballot.get(msg.varName).toString() + "," 
+						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id);
+				replyStream.writeUTF("ack," + ballot.get(msg.varName).toString() + "," 
+						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id);
 			} else if(msg.type.equals("accept")){
-				if(ballot.greaterThan(msg.bNum)){
+				PaxosClient curr = sessions.get(msg.id);
+				String varName = curr.getVarName();
+				if(ballot.get(varName).greaterThan(msg.bNum)){
 					return;
 				}
-				Log.log("paxos client send back:" + "accept," + ballot.toString() + "," + val + "," + msg.id);
-				replyStream.writeUTF("accept," + ballot.toString() + "," + val + "," + msg.id);
-				PaxosClient curr = sessions.get(msg.id);
+				Log.log("paxos client send back:" + "accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id);
+				replyStream.writeUTF("accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id);
 				if(curr.isHasAccepted() == true){
 					// TODO need to get dup source if there is recovery
 					curr.setVote(curr.getVote() + 1);
 				}
 				if(curr.getVote() > clients.length / 2){
-					Log.log("paxos client broadcast:" + "decide," + val + "," + msg.id);
+					Log.log("paxos client broadcast:" + "decide," + val.get(varName) + "," + msg.id);
 					for(Node n : clients){
-						Client.send(n.port, "decide," + val + "," + msg.id, n.address, null);
+						Client.send(n.port, "decide," + val.get(varName) + "," + msg.id, n.address, null);
 					}
 				}
 				if(curr.isHasAccepted() == false){
-					acceptBallot = msg.accp;
-					val = msg.val;
-					Log.log("paxos broadcast:" + "accept," + ballot.toString() + "," + val + "," + msg.id);
+					acceptBallot.put(varName,msg.accp);
+					val.put(varName,msg.val);
+					Log.log("paxos broadcast:" + "accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id);
 					for(Node n : clients){
-						Client.send(n.port, "accept," + ballot.toString() + "," + val + "," + msg.id, n.address, null);
+						Client.send(n.port, "accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id, n.address, null);
 					}
 				}
 				curr.setHasAccepted(true);
 			} else if(msg.type.equals("decide")){
 				if(sessions.containsKey(msg.id)){
-					Log.log("paxos client broadcast:" + "decide," + val + "," + msg.id);
+					PaxosClient curr = sessions.get(msg.id);
+					String varName = curr.getVarName();
+					Log.log("paxos client broadcast:" + "decide," + val.get(varName) + "," + msg.id);
 					for(Node n : clients){
-						Client.send(n.port, "decide," + val + "," + msg.id, n.address, null);
+						Client.send(n.port, "decide," + val.get(varName) + "," + msg.id, n.address, null);
 					}
 					sessions.remove(msg.id);
 				}

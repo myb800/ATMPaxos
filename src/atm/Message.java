@@ -7,6 +7,7 @@ public class Message {
 	Ballot accp = null;
 	Integer val = null;
 	String id = null;
+	String varName = null;
 	public String toString(){
 		StringBuffer sbf = new StringBuffer();
 		sbf.append(type);
@@ -38,6 +39,7 @@ public class Message {
 		if(msg.type.equals("prepare")){
 			msg.bNum = Ballot.parse(tokens[1], tokens[2]);
 			msg.id = tokens[3];
+			msg.varName = tokens[4];
 		} else if(msg.type.equals("ack")){
 			msg.bNum = Ballot.parse(tokens[1], tokens[2]);
 			msg.accp = Ballot.parse(tokens[3], tokens[4]);
