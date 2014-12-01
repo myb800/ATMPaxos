@@ -33,9 +33,9 @@ public class PaxosLeader {
 			}
 		} else if(state.equals("propose")){
 			Propose proposeAction = new Propose();
-			Log.log("paxos leader broadcast:" + "accept," + ballot.toString() + "," + value + "," + paxosId);
+			Log.log("paxos leader broadcast:" + "accept," + ballot.toString() + "," + value + "," + paxosId + "," + varName);
 			for(Node node:clients){
-				Client.send(node.port, "accept," + ballot.toString() + "," + value + "," + paxosId, node.address, proposeAction);				
+				Client.send(node.port, "accept," + ballot.toString() + "," + value + "," + paxosId + "," + varName, node.address, proposeAction);				
 			}
 			if(proposeAction.getVote() > clients.length / 2){
 				state = "decide";
@@ -47,9 +47,9 @@ public class PaxosLeader {
 			}
 		} else if(state.equals("decide")){
 			decidedVal = value;
-			Log.log("paxos leader broadcast:" + "decide," + value + "," + paxosId);
+			Log.log("paxos leader broadcast:" + "decide," + value + "," + paxosId + "," + varName);
 			for(Node node:clients){
-				Client.send(node.port, "decide," + value + "," + paxosId, node.address, null);				
+				Client.send(node.port, "decide," + value + "," + paxosId + "," + varName, node.address, null);				
 			}
 		}
 		

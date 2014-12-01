@@ -36,54 +36,66 @@ public class PaxosClientAll implements ServerAction{
 				sessions.put(msg.id, newSession);
 				newSession.setStatus("wait-proposal");
 				Log.log("paxos client send back:" + "ack," + ballot.get(msg.varName).toString() + "," 
-						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id);
+						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id + "," + msg.varName);
 				replyStream.writeUTF("ack," + ballot.get(msg.varName).toString() + "," 
-						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id);
+						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id + "," + msg.varName);
 			} else if(msg.type.equals("prepare") && sessions.containsKey(msg.id)){
 				if(ballot.get(msg.varName).greaterThan(msg.bNum)){
 					return;
 				}
 				ballot.put(msg.varName, msg.bNum);
 				Log.log("ack," + ballot.get(msg.varName).toString() + "," 
-						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id);
+						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id + "," + msg.varName);
 				replyStream.writeUTF("ack," + ballot.get(msg.varName).toString() + "," 
-						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id);
+						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id + "," + msg.varName);
 			} else if(msg.type.equals("accept")){
-				PaxosClient curr = sessions.get(msg.id);
-				String varName = curr.getVarName();
-				if(ballot.get(varName).greaterThan(msg.bNum)){
-					return;
+				PaxosClient curr;
+				String varName = msg.varName;
+				if(val.containsKey(msg.varName) == false){
+					addRecord(varName, msg.val, msg.accp, msg.bNum);
 				}
-				Log.log("paxos client send back:" + "accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id);
-				replyStream.writeUTF("accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id);
+				if(sessions.containsKey(msg.id) == false){
+					curr = new PaxosClient(msg.id, msg.varName);
+					curr.setStatus("accepting");
+					sessions.put(msg.id, curr);
+				} else {
+					curr = sessions.get(msg.id);
+					if(ballot.get(varName).greaterThan(msg.bNum)){
+						return;
+					}
+				}
+				
+				
+				Log.log("paxos client send back:" + "accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id + "," + varName);
+				replyStream.writeUTF("accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id + "," + varName);
 				if(curr.isHasAccepted() == true){
 					// TODO need to get dup source if there is recovery
 					curr.setVote(curr.getVote() + 1);
 				}
 				if(curr.getVote() > clients.length / 2){
-					Log.log("paxos client broadcast:" + "decide," + val.get(varName) + "," + msg.id);
+					Log.log("paxos client broadcast:" + "decide," + val.get(varName) + "," + msg.id + "," + varName);
+					curr.setStatus("decide");
 					for(Node n : clients){
-						Client.send(n.port, "decide," + val.get(varName) + "," + msg.id, n.address, null);
+						Client.send(n.port, "decide," + val.get(varName) + "," + msg.id + "," + varName, n.address, null);
 					}
 				}
 				if(curr.isHasAccepted() == false){
 					acceptBallot.put(varName,msg.accp);
 					val.put(varName,msg.val);
-					Log.log("paxos broadcast:" + "accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id);
+					Log.log("paxos broadcast:" + "accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id + "," + varName);
 					for(Node n : clients){
-						Client.send(n.port, "accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id, n.address, null);
+						Client.send(n.port, "accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id + "," + varName, n.address, null);
 					}
 				}
 				curr.setHasAccepted(true);
 			} else if(msg.type.equals("decide")){
-				if(sessions.containsKey(msg.id)){
-					PaxosClient curr = sessions.get(msg.id);
+				PaxosClient curr = sessions.get(msg.id);
+				if(!curr.getStatus().equals("decide")){
 					String varName = curr.getVarName();
-					Log.log("paxos client broadcast:" + "decide," + val.get(varName) + "," + msg.id);
+					Log.log("paxos client broadcast:" + "decide," + val.get(varName) + "," + msg.id + "," + varName);
 					for(Node n : clients){
-						Client.send(n.port, "decide," + val.get(varName) + "," + msg.id, n.address, null);
+						Client.send(n.port, "decide," + val.get(varName) + "," + msg.id + "," + varName, n.address, null);
 					}
-					sessions.remove(msg.id);
 				}
 				
 			}
@@ -94,6 +106,10 @@ public class PaxosClientAll implements ServerAction{
 		
 		
 	}
-	
+	public void addRecord(String varName,int valu,Ballot acceptBallot,Ballot ballot){
+		this.val.put(varName, valu);
+		this.acceptBallot.put(varName, acceptBallot);
+		this.ballot.put(varName, ballot);
+	}
 
 }

@@ -30,14 +30,14 @@ public class Test {
 
 	}
 	private static void test_paxos(){
-		Node[] clients = new Node[1];
+		Node[] clients = new Node[2];
 		clients[0] = new Node("127.0.0.1", 1006);
 		clients[1] = new Node("127.0.0.1", 1007);
 		new Thread(new Server(1006, new PaxosClientAll(clients))).start();
 		new Thread(new Server(1007, new PaxosClientAll(clients))).start();
 		
 		PaxosLeader pl = new PaxosLeader(clients, "3","v");
-		pl.runPaxos(1, new Ballot(1, 1));
+		pl.runPaxos(13, new Ballot(1, 1));
 	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub

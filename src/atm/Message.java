@@ -45,13 +45,16 @@ public class Message {
 			msg.accp = Ballot.parse(tokens[3], tokens[4]);
 			msg.val  = Integer.parseInt(tokens[5]);
 			msg.id   = tokens[6];
+			msg.varName = tokens[7];
 		} else if(msg.type.equals("accept")){
 			msg.bNum = Ballot.parse(tokens[1], tokens[2]);
 			msg.val  = Integer.parseInt(tokens[3]);
 			msg.id   = tokens[4];
+			msg.varName = tokens[5];
 		} else if(msg.type.equals("decide")){
 			msg.val = Integer.parseInt(tokens[1]);
 			msg.id  = tokens[2];
+			msg.varName = tokens[3];
 		}
 		return msg;
 	}
