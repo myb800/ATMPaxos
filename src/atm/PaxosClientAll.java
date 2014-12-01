@@ -18,7 +18,7 @@ public class PaxosClientAll implements ServerAction{
 		this.clients = clients;
 	}
 	@Override
-	public synchronized void onRecv(String data, DataOutputStream replyStream) {
+	public void onRecv(String data, DataOutputStream replyStream) {
 		Log.log("paxos client receive:" + data);
 		Message msg = Message.parse(data);
 		try {
@@ -91,6 +91,7 @@ public class PaxosClientAll implements ServerAction{
 			} else if(msg.type.equals("decide")){
 				PaxosClient curr = sessions.get(msg.id);
 				if(!curr.getStatus().equals("decide")){
+					curr.setStatus("decide");
 					String varName = curr.getVarName();
 					Log.log("paxos client broadcast:" + "decide," + val.get(varName) + "," + msg.id + "," + varName);
 					for(Node n : clients){
