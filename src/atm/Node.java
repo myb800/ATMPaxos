@@ -1,5 +1,7 @@
 package atm;
 
+import java.util.Scanner;
+
 public class Node {
 	@Override
 	public int hashCode() {
@@ -29,9 +31,19 @@ public class Node {
 	}
 	String address;
 	int port;
+	long id;
+	static Long toNum(String ip, int port){
+		Scanner sc = new Scanner(ip).useDelimiter("\\.");
+		return	(sc.nextLong() << 40) + 
+				(sc.nextLong() << 32) +
+				(sc.nextLong() << 24) +
+				(sc.nextLong() << 16) + 
+				port;
+	}
 	Node(String addr,int port){
 		this.address = addr;
 		this.port = port;
+		this.id = toNum(addr, port);
 	}
 	
 }
