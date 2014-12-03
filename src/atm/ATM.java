@@ -2,11 +2,9 @@ package atm;
 
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -158,19 +156,6 @@ public class ATM {
 		new Thread(new Server(recoveryPort, new BackupServerAction())).start();
 	}
 	
-	private String readFile(File file) throws IOException{
-		StringBuilder sb = new StringBuilder((int)file.length());
-		Scanner sc = new Scanner(file);
-		String lineSeperator = "\n";
-		try{
-			while(sc.hasNextLine()){
-				sb.append(sc.nextLine() + lineSeperator);
-			}
-			return sb.toString();
-		}finally{
-			sc.close();
-		}
-	}
 	private class BackupServerAction implements ServerAction{
 
 		@Override
