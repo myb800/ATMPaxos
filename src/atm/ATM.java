@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 public class ATM {
 	private int balance = 0;
-	private int currentTransId = 0;
 	private List<String> operation;
 	private List<Integer> values;
 	private PaxosClientAll client;
@@ -19,22 +18,17 @@ public class ATM {
 		client = new PaxosClientAll(Constants.clients);
 		new Thread(new Server(this.port,client)).start();
 	}
-	public int getBalance(int port,int processId){
+	public int getBalance(){
 		return balance;
 	}
-	private void addRecord(String op,int value,int index){
-		if(index == operation.size()){
-			operation.add(op);
-			values.add(value);
-		}
-	}
 	public boolean withdraw(int m){
+		backup();
 		PaxosLeader newPaxos = null;
 		while(newPaxos == null || newPaxos.isHasDecisionBefore()){
 			if(balance < m){
 				return false;
 			}
-			newPaxos = new PaxosLeader(Constants.clients, processId + ":" + port + "-" + System.currentTimeMillis(), "log-slot-" + operation.size());
+			newPaxos = new PaxosLeader(Constants.clients, processId + ":" + port + "-" + operation.size(), "log-slot-" + operation.size());
 			newPaxos.runPaxos("W " + m, new Ballot(0, processId));
 			updateBalance(newPaxos.getDecidedVal());
 		}
@@ -44,9 +38,12 @@ public class ATM {
 	public boolean deposit(int m){
 		PaxosLeader newPaxos = null;
 		while(newPaxos == null || newPaxos.isHasDecisionBefore()){
-			newPaxos = new PaxosLeader(Constants.clients, processId + ":" + port + "-" + System.currentTimeMillis(), "log-slot-" + operation.size());
-			newPaxos.runPaxos("W " + m, new Ballot(0, processId));
+			Log.log("Beginning a new round for deposit");
+			newPaxos = new PaxosLeader(Constants.clients, processId + ":" + port + "-" + operation.size(), "log-slot-" + operation.size());
+			newPaxos.runPaxos("D " + m, new Ballot(0, processId));
 			updateBalance(newPaxos.getDecidedVal());
+			System.out.println(newPaxos.isHasDecisionBefore());
+			break;
 		}
 		return true;
 	}
