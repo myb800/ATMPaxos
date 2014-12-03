@@ -1,5 +1,4 @@
 package atm;
-// this paxos requires the number proposed to be greater than 0
 
 public class PaxosLeader {
 	
@@ -33,6 +32,12 @@ public class PaxosLeader {
 				}
 			} else {
 				ballot.ballotNum++;
+				try {
+					Thread.sleep((long) (1 + 2000*Math.random()));
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				runPaxos(value, ballot);
 			}
 		} else if(state.equals("propose")){

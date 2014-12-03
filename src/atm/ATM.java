@@ -19,14 +19,16 @@ public class ATM {
 	private int recoveryPort;
 	private int processId;
 	private Lock logLock = new ReentrantLock();
-	
-	public ATM(int port,int processId, int recoverPort){
+	private Node[] clients;
+	public ATM(int port,int processId, int recoverPort,Node[] clients){
 		this.port = port;
 		this.processId = processId;
 		this.recoveryPort = recoverPort;
+		this.clients = clients;
+		
 		operation = new ArrayList<String>();
 		values = new ArrayList<Integer>();
-		client = new PaxosClientAll(Constants.clients);
+		client = new PaxosClientAll(clients);
 		client.setOnDecide(new PaxosOnDecide() {
 			
 			@Override
@@ -56,7 +58,7 @@ public class ATM {
 				return false;
 			}
 			int slot = operation.size();
-			newPaxos = new PaxosLeader(Constants.clients, processId + ":" + port + "-" + operation.size(), Integer.toString(slot));
+			newPaxos = new PaxosLeader(clients, processId + ":" + port + "-" + operation.size(), Integer.toString(slot));
 			newPaxos.runPaxos("W " + m, new Ballot(0, processId));
 			writeLocalLog(newPaxos.getDecidedVal(), slot);
 		}
@@ -68,7 +70,7 @@ public class ATM {
 		while(newPaxos == null || newPaxos.isMyProposedPermitted() == false){
 			Log.log("Beginning a new round for deposit");
 			int slot = operation.size();
-			newPaxos = new PaxosLeader(Constants.clients, processId + ":" + port + "-" + operation.size() + System.currentTimeMillis(), Integer.toString(slot));
+			newPaxos = new PaxosLeader(clients, processId + ":" + port + "-" + operation.size() + System.currentTimeMillis(), Integer.toString(slot));
 			newPaxos.runPaxos("D " + m, new Ballot(0, processId));
 			writeLocalLog(newPaxos.getDecidedVal(), slot);
 		}
@@ -130,7 +132,7 @@ public class ATM {
 	
 	
 	public void recover() throws IOException{
-		for(Node node : Constants.clients){
+		for(Node node : clients){
 			Client.send(node.recoveryPort, "", node.address, new ClientAction() {
 				
 				@Override
