@@ -8,13 +8,13 @@ public class PaxosClientAll implements ServerAction{
 	private HashMap<String,PaxosClient> sessions = null;
 	private HashMap<String,Ballot> acceptBallot = null;
 	private HashMap<String,Ballot> ballot;
-	private HashMap<String,Integer> val;
+	private HashMap<String,String> val;
 	private Node[] clients;
 	public PaxosClientAll(Node[] clients) {
 		sessions = new HashMap<String,PaxosClient>();
 		ballot = new HashMap<String,Ballot>();
 		acceptBallot = new HashMap<String,Ballot>();
-		val = new HashMap<String,Integer>();
+		val = new HashMap<String,String>();
 		this.clients = clients;
 	}
 	@Override
@@ -24,7 +24,7 @@ public class PaxosClientAll implements ServerAction{
 		try {
 			if(msg.type.equals("prepare") && !sessions.containsKey(msg.id)){
 				if(!val.containsKey(msg.varName)){
-					val.put(msg.varName, -1);
+					val.put(msg.varName, "");
 					acceptBallot.put(msg.varName, new Ballot(0,0));
 					ballot.put(msg.varName, new Ballot(0,0));
 				}
@@ -107,7 +107,7 @@ public class PaxosClientAll implements ServerAction{
 		
 		
 	}
-	public void addRecord(String varName,int valu,Ballot acceptBallot,Ballot ballot){
+	public void addRecord(String varName,String valu,Ballot acceptBallot,Ballot ballot){
 		this.val.put(varName, valu);
 		this.acceptBallot.put(varName, acceptBallot);
 		this.ballot.put(varName, ballot);

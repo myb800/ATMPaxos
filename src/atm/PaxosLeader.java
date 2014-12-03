@@ -4,7 +4,8 @@ package atm;
 public class PaxosLeader {
 	private String state = "prepare";
 	private Node[] clients;
-	private int decidedVal;
+	private String decidedVal;
+	private boolean hasDecisionBefore = true;
 	private String paxosId;
 	private String varName;
 	public PaxosLeader(Node[] clients,String paxosId,String varName){
@@ -13,7 +14,7 @@ public class PaxosLeader {
 		this.varName = varName;
 	}
 	
-	public void runPaxos(int value,Ballot ballot){
+	public void runPaxos(String value,Ballot ballot){
 		if(state.equals("prepare")){
 			Prepare prepareAction = new Prepare();
 			Log.log("paxos leader broadcast:" + "prepare," + ballot.toString() + "," + paxosId + "," + varName);
@@ -22,7 +23,8 @@ public class PaxosLeader {
 			}
 			if(prepareAction.getVote() > clients.length / 2){
 				state = "propose";
-				if(prepareAction.getVal() != -1){ //not yet decided
+				if(prepareAction.getVal().equals("") == false){ //not yet decided
+					hasDecisionBefore = false;
 					runPaxos(prepareAction.getVal(), ballot);
 				} else {
 					runPaxos(value, ballot);
@@ -58,13 +60,13 @@ public class PaxosLeader {
 
 	private class Prepare implements ClientAction{
 		
-		private int val;
+		private String val;
 		private int vote = 0;
 		private Ballot maxBallot = null;
 		public int getVote(){
 			return vote;
 		}
-		public int getVal(){
+		public String getVal(){
 			return val;
 		}
 		@Override
@@ -106,11 +108,14 @@ public class PaxosLeader {
 		
 	}
 	
-	public int getDecidedVal() {
+	public String getDecidedVal() {
 		return decidedVal;
 	}
 	
 	public String getPaxosId() {
 		return paxosId;
+	}
+	public boolean isHasDecisionBefore() {
+		return hasDecisionBefore;
 	}
 }

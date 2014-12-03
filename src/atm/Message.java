@@ -5,7 +5,7 @@ public class Message {
 	String type = null;
 	Ballot bNum = null;
 	Ballot accp = null;
-	Integer val = null;
+	String val = null;
 	String id = null;
 	String varName = null;
 	public String toString(){
@@ -20,7 +20,7 @@ public class Message {
 			sbf.append(accp.toString());
 		}
 		if(val != null){
-			sbf.append("," + Integer.toString(val));
+			sbf.append("," + (val));
 		}
 		sbf.append(id);
 		return sbf.toString();
@@ -43,16 +43,16 @@ public class Message {
 		} else if(msg.type.equals("ack")){
 			msg.bNum = Ballot.parse(tokens[1], tokens[2]);
 			msg.accp = Ballot.parse(tokens[3], tokens[4]);
-			msg.val  = Integer.parseInt(tokens[5]);
+			msg.val  = (tokens[5]);
 			msg.id   = tokens[6];
 			msg.varName = tokens[7];
 		} else if(msg.type.equals("accept")){
 			msg.bNum = Ballot.parse(tokens[1], tokens[2]);
-			msg.val  = Integer.parseInt(tokens[3]);
+			msg.val  = (tokens[3]);
 			msg.id   = tokens[4];
 			msg.varName = tokens[5];
 		} else if(msg.type.equals("decide")){
-			msg.val = Integer.parseInt(tokens[1]);
+			msg.val = (tokens[1]);
 			msg.id  = tokens[2];
 			msg.varName = tokens[3];
 		}

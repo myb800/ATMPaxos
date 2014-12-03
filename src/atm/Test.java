@@ -37,7 +37,7 @@ public class Test {
 		new Thread(new Server(1007, new PaxosClientAll(clients))).start();
 		
 		PaxosLeader pl = new PaxosLeader(clients, "3","v");
-		pl.runPaxos(13, new Ballot(1, 1));
+		pl.runPaxos("13", new Ballot(1, 1));
 	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
