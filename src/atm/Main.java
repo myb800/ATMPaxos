@@ -1,13 +1,17 @@
 package atm;
 
 import java.io.BufferedReader;
+<<<<<<< HEAD
 import java.io.IOException;
+=======
+>>>>>>> origin/master
 import java.io.InputStreamReader;
 
 public class Main {
 
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
+<<<<<<< HEAD
 		ATM atm = new ATM(2005, 1);
 		while(true){
 			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -25,6 +29,8 @@ public class Main {
 				e.printStackTrace();
 			}
 		}
+=======
+>>>>>>> origin/master
 	}
 
 }
