@@ -45,6 +45,8 @@ public class Test {
 		
 		atm1.deposit(100);
 		atm2.deposit(100);
+		atm1.deposit(100);
+		atm2.withdraw(300);
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {

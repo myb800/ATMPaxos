@@ -1,18 +1,14 @@
 package atm;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ATM {
 	private int balance = 0;
@@ -39,16 +35,23 @@ public class ATM {
 				writeLocalLog(val,Integer.parseInt(varName));
 			}
 		});
+		respondBackup();
 		new Thread(new Server(this.port,client)).start();
 	}
 	public int getBalance(){
 		updateBalance();
+		System.out.println(operation.size());
 		return balance;
 	}
-	public boolean withdraw(int m) throws IOException{
-		recover();
+	public boolean withdraw(int m){
+		try {
+			recover();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		PaxosLeader newPaxos = null;
-		while(newPaxos == null || newPaxos.isMyProposedPermitted()){
+		while(newPaxos == null || newPaxos.isMyProposedPermitted() == false){
 			if(getBalance() < m){
 				return false;
 			}
