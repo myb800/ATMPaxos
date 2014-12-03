@@ -5,11 +5,10 @@ import java.io.DataOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 public class ATM {
 	private int balance = 0;
-	private List<String> operation;
-	private List<Integer> values;
+	private ArrayList<String> operation;
+	private ArrayList<Integer> values;
 	private PaxosClientAll client;
 	private int port;
 	private int processId;
@@ -19,21 +18,31 @@ public class ATM {
 		operation = new ArrayList<String>();
 		values = new ArrayList<Integer>();
 		client = new PaxosClientAll(Constants.clients);
+		client.setOnDecide(new PaxosOnDecide() {
+			
+			@Override
+			public void onDecide(String varName, String paxosId, String val) {
+				// varName is the slot idx
+				writeLocalLog(val,Integer.parseInt(varName));
+			}
+		});
 		new Thread(new Server(this.port,client)).start();
 	}
 	public int getBalance(){
+		updateBalance();
 		return balance;
 	}
 	public boolean withdraw(int m){
 		backup();
 		PaxosLeader newPaxos = null;
 		while(newPaxos == null || newPaxos.isHasDecisionBefore()){
-			if(balance < m){
+			if(getBalance() < m){
 				return false;
 			}
-			newPaxos = new PaxosLeader(Constants.clients, processId + ":" + port + "-" + operation.size(), "log-slot-" + operation.size());
+			int slot = operation.size();
+			newPaxos = new PaxosLeader(Constants.clients, processId + ":" + port + "-" + operation.size(), Integer.toString(slot));
 			newPaxos.runPaxos("W " + m, new Ballot(0, processId));
-			updateBalance(newPaxos.getDecidedVal());
+			writeLocalLog(newPaxos.getDecidedVal(), slot);
 		}
 		return true;
 		
@@ -42,15 +51,32 @@ public class ATM {
 		PaxosLeader newPaxos = null;
 		while(newPaxos == null || newPaxos.isHasDecisionBefore()){
 			Log.log("Beginning a new round for deposit");
-			newPaxos = new PaxosLeader(Constants.clients, processId + ":" + port + "-" + operation.size(), "log-slot-" + operation.size());
+			int slot = operation.size();
+			newPaxos = new PaxosLeader(Constants.clients, processId + ":" + port + "-" + operation.size(), Integer.toString(slot));
 			newPaxos.runPaxos("D " + m, new Ballot(0, processId));
-			updateBalance(newPaxos.getDecidedVal());
-			System.out.println(newPaxos.isHasDecisionBefore());
-			break;
+			writeLocalLog(newPaxos.getDecidedVal(), slot);
 		}
 		return true;
 	}
-	
+	private synchronized void writeLocalLog(String log,int idx){
+		String[] logTkens = log.split(" ");
+		while(idx >= operation.size()){
+			operation.add("");
+			values.add(0);
+		}
+		operation.set(idx, logTkens[0].trim());
+		values.set(idx, Integer.parseInt(logTkens[1].trim()));
+	}
+	private void updateBalance(){
+		balance = 0;
+		for(int i = 0;i < operation.size();i++){
+			if(operation.get(i).equals("W")){
+				balance -= values.get(i);
+			} else {
+				balance += values.get(i);
+			}
+		}
+	}
 	public void updateBalance(String log){
 		String[] op = log.split(" ");
 		operation.add(op[0]);

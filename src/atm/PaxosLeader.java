@@ -2,12 +2,14 @@ package atm;
 // this paxos requires the number proposed to be greater than 0
 
 public class PaxosLeader {
+	
 	private String state = "prepare";
 	private Node[] clients;
 	private String decidedVal;
-	private boolean hasDecisionBefore = true;
+	private boolean isMyProposalPermitted = true;
 	private String paxosId;
 	private String varName;
+	private PaxosOnDecide paxosOnDecide = null;
 	public PaxosLeader(Node[] clients,String paxosId,String varName){
 		this.clients = clients;
 		this.paxosId = paxosId;
@@ -24,9 +26,9 @@ public class PaxosLeader {
 			if(prepareAction.getVote() > clients.length / 2){
 				state = "propose";
 				if(prepareAction.getVal().equals("") == false){ //not yet decided
-					hasDecisionBefore = false;
 					runPaxos(prepareAction.getVal(), ballot);
 				} else {
+					isMyProposalPermitted = false;
 					runPaxos(value, ballot);
 				}
 			} else {
@@ -41,6 +43,9 @@ public class PaxosLeader {
 			}
 			if(proposeAction.getVote() > clients.length / 2){
 				state = "decide";
+				if(paxosOnDecide != null){
+					paxosOnDecide.onDecide(varName, paxosId, value);
+				}
 				runPaxos(value, ballot);
 			} else {
 				state = "prepare";
@@ -57,7 +62,9 @@ public class PaxosLeader {
 		
 		
 	}
-
+	public void setPaxosOnDecide(PaxosOnDecide paxosOnDecide) {
+		this.paxosOnDecide = paxosOnDecide;
+	}
 	private class Prepare implements ClientAction{
 		
 		private String val;
@@ -116,6 +123,6 @@ public class PaxosLeader {
 		return paxosId;
 	}
 	public boolean isHasDecisionBefore() {
-		return hasDecisionBefore;
+		return isMyProposalPermitted;
 	}
 }
