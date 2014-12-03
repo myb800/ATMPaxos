@@ -20,6 +20,7 @@ public class PaxosClientAll implements ServerAction{
 	@Override
 	public void onRecv(String data, DataOutputStream replyStream) {
 		Log.log("paxos client receive:" + data);
+		
 		Message msg = Message.parse(data);
 		try {
 			if(msg.type.equals("prepare") && !sessions.containsKey(msg.id)){
