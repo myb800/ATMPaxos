@@ -40,7 +40,6 @@ public class ATM {
 	}
 	public int getBalance(){
 		updateBalance();
-		System.out.println(operation.size());
 		return balance;
 	}
 	public boolean withdraw(int m){
