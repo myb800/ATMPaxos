@@ -43,7 +43,7 @@ public class ATM {
 		updateBalance();
 		return balance;
 	}
-	public boolean withdraw(int m){
+	public boolean withdraw(int m) throws IOException{
 		backup();
 		PaxosLeader newPaxos = null;
 		while(newPaxos == null || newPaxos.isHasDecisionBefore()){
@@ -120,7 +120,8 @@ public class ATM {
 	}
 	
 	
-	public void backup(File log_file) throws IOException{
+	public void backup() throws IOException{
+		File log_file = new File("log.txt");
 		BufferedReader br = new BufferedReader(new FileReader(log_file));
 		String line;
 		while((line = br.readLine()) != null)
@@ -128,7 +129,8 @@ public class ATM {
 		br.close();
 	}
 	
-	public void respondBackup(File log_file) throws IOException{
+	public void respondBackup() throws IOException{
+		File log_file = new File("log.txt");
 		ServerAction sact = null;
         DataOutputStream outputStream = new DataOutputStream(new FileOutputStream("log.txt"));
         outputStream.writeUTF(readFile(log_file));
