@@ -1,6 +1,9 @@
 package atm;
 
+import java.io.BufferedWriter;
 import java.io.DataOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 public class ATM {
@@ -61,7 +64,26 @@ public class ATM {
 			balance += Integer.parseInt(op[1].trim());
 		}
 	}
-	
+	public void writelog(String action, double value){
+		try{
+			BufferedWriter out = new BufferedWriter(new FileWriter("log.txt"));
+			if(action.equals("deposit")){
+				out.write("deposit " + value);
+				out.newLine();
+				out.close();
+			}
+			else if(action.equals("withdraw")){
+				out.write("withdraw " + value);
+				out.newLine();
+				out.close();
+			}
+			else
+				System.out.println("error: write log fail");
+		}
+		catch (IOException e){
+			System.out.println("Exception");
+		}
+	}
 	
 	
 	public void backup(){
