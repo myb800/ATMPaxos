@@ -28,7 +28,7 @@ public class PaxosLeader {
 				if(prepareAction.getVal().equals("") == false){ //not yet decided
 					runPaxos(prepareAction.getVal(), ballot);
 				} else {
-					isMyProposalPermitted = false;
+					isMyProposalPermitted = true;
 					runPaxos(value, ballot);
 				}
 			} else {
@@ -84,6 +84,7 @@ public class PaxosLeader {
 			if(maxBallot == null || msg.bNum.greaterThan(maxBallot)){
 				maxBallot = msg.bNum;
 				val = msg.val;
+				isMyProposalPermitted = false;
 			}
 			vote++;
 			
@@ -122,7 +123,7 @@ public class PaxosLeader {
 	public String getPaxosId() {
 		return paxosId;
 	}
-	public boolean isHasDecisionBefore() {
-		return isMyProposalPermitted;
+	public boolean isMyProposedPermitted() {
+		return this.isMyProposalPermitted;
 	}
 }

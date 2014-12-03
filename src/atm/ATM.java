@@ -35,7 +35,7 @@ public class ATM {
 	public boolean withdraw(int m){
 		backup();
 		PaxosLeader newPaxos = null;
-		while(newPaxos == null || newPaxos.isHasDecisionBefore()){
+		while(newPaxos == null || newPaxos.isMyProposedPermitted()){
 			if(getBalance() < m){
 				return false;
 			}
@@ -49,10 +49,10 @@ public class ATM {
 	}
 	public boolean deposit(int m){
 		PaxosLeader newPaxos = null;
-		while(newPaxos == null || newPaxos.isHasDecisionBefore()){
+		while(newPaxos == null || newPaxos.isMyProposedPermitted() == false){
 			Log.log("Beginning a new round for deposit");
 			int slot = operation.size();
-			newPaxos = new PaxosLeader(Constants.clients, processId + ":" + port + "-" + operation.size(), Integer.toString(slot));
+			newPaxos = new PaxosLeader(Constants.clients, processId + ":" + port + "-" + operation.size() + System.currentTimeMillis(), Integer.toString(slot));
 			newPaxos.runPaxos("D " + m, new Ballot(0, processId));
 			writeLocalLog(newPaxos.getDecidedVal(), slot);
 		}
