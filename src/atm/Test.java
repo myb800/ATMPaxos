@@ -39,9 +39,24 @@ public class Test {
 		PaxosLeader pl = new PaxosLeader(clients, "3","v");
 		pl.runPaxos("13", new Ballot(1, 1));
 	}
+	private static void test_ATM(){
+		ATM atm1 = new ATM(2005, 1);
+		ATM atm2 = new ATM(2006, 2);
+		
+		atm1.deposit(100);
+		atm2.deposit(100);
+		atm1.withdraw(100);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println(atm2.getBalance());
+	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		 test_paxos();
+		test_ATM();
 	}
 
 }

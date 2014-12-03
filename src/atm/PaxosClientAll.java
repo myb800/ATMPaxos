@@ -5,11 +5,14 @@ import java.io.IOException;
 import java.util.HashMap;
 
 public class PaxosClientAll implements ServerAction{
+	
 	private HashMap<String,PaxosClient> sessions = null;
 	private HashMap<String,Ballot> acceptBallot = null;
 	private HashMap<String,Ballot> ballot;
 	private HashMap<String,String> val;
 	private Node[] clients;
+	private PaxosOnDecide onDecide = null;
+	
 	public PaxosClientAll(Node[] clients) {
 		sessions = new HashMap<String,PaxosClient>();
 		ballot = new HashMap<String,Ballot>();
@@ -76,6 +79,9 @@ public class PaxosClientAll implements ServerAction{
 				if(curr.getVote() > clients.length / 2){
 					Log.log("paxos client broadcast:" + "decide," + val.get(varName) + "," + msg.id + "," + varName);
 					curr.setStatus("decide");
+					if(onDecide != null){
+						onDecide.onDecide(varName, msg.id, val.get(varName));
+					}
 					for(Node n : clients){
 						Client.send(n.port, "decide," + val.get(varName) + "," + msg.id + "," + varName, n.address, null);
 					}
@@ -94,6 +100,9 @@ public class PaxosClientAll implements ServerAction{
 				if(!curr.getStatus().equals("decide")){
 					curr.setStatus("decide");
 					String varName = curr.getVarName();
+					if(onDecide != null){
+						onDecide.onDecide(varName, msg.id, val.get(varName));
+					}
 					Log.log("paxos client broadcast:" + "decide," + val.get(varName) + "," + msg.id + "," + varName);
 					for(Node n : clients){
 						Client.send(n.port, "decide," + val.get(varName) + "," + msg.id + "," + varName, n.address, null);
@@ -108,6 +117,10 @@ public class PaxosClientAll implements ServerAction{
 		
 		
 	}
+	public void setOnDecide(PaxosOnDecide onDecide) {
+		this.onDecide = onDecide;
+	}
+	
 	public void addRecord(String varName,String valu,Ballot acceptBallot,Ballot ballot){
 		this.val.put(varName, valu);
 		this.acceptBallot.put(varName, acceptBallot);
