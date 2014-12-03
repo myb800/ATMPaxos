@@ -55,7 +55,7 @@ public class ATM {
 				return false;
 			}
 			int slot = operation.size();
-			newPaxos = new PaxosLeader(clients, processId + ":" + port + "-" + operation.size(), Integer.toString(slot));
+			newPaxos = new PaxosLeader(clients, processId + ":" + port + "-" + operation.size() + System.currentTimeMillis(), Integer.toString(slot));
 			newPaxos.runPaxos("W " + m, new Ballot(0, processId));
 			writeLocalLog(newPaxos.getDecidedVal(), slot);
 		}
