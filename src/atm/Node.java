@@ -32,6 +32,7 @@ public class Node {
 	String address;
 	int port;
 	long id;
+	int recoveryPort;
 	public Long toNum(String ip, int port){
 		Scanner sc = new Scanner(ip).useDelimiter("\\.");
 		return	(sc.nextLong() << 40) + 
@@ -40,10 +41,11 @@ public class Node {
 				(sc.nextLong() << 16) + 
 				port;
 	}
-	Node(String addr,int port){
+	Node(String addr,int port,int recoverPort){
 		this.address = addr;
 		this.port = port;
 		this.id = toNum(addr, port);
+		this.recoveryPort = recoverPort;
 	}
 	
 }

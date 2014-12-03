@@ -31,8 +31,8 @@ public class Test {
 	}
 	private static void test_paxos(){
 		Node[] clients = new Node[2];
-		clients[0] = new Node("127.0.0.1", 1006);
-		clients[1] = new Node("127.0.0.1", 1007);
+		clients[0] = new Node("127.0.0.1", 1006, 3007);
+		clients[1] = new Node("127.0.0.1", 1007, 3008);
 		new Thread(new Server(1006, new PaxosClientAll(clients))).start();
 		new Thread(new Server(1007, new PaxosClientAll(clients))).start();
 		
@@ -40,8 +40,8 @@ public class Test {
 		pl.runPaxos("13", new Ballot(1, 1));
 	}
 	private static void test_ATM(){
-		ATM atm1 = new ATM(2007, 1);
-		ATM atm2 = new ATM(2008, 2);
+		ATM atm1 = new ATM(2007, 1, 3007);
+		ATM atm2 = new ATM(2008, 2, 3008);
 		
 		atm1.deposit(100);
 		atm2.deposit(100);

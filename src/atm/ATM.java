@@ -2,19 +2,17 @@ package atm;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.FileReader;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-//import org.apache.commons.io.FileUtils;
 import java.util.Scanner;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ATM {
 	private int balance = 0;
@@ -22,10 +20,14 @@ public class ATM {
 	private ArrayList<Integer> values;
 	private PaxosClientAll client;
 	private int port;
+	private int recoveryPort;
 	private int processId;
-	public ATM(int port,int processId){
+	private Lock logLock = new ReentrantLock();
+	
+	public ATM(int port,int processId, int recoverPort){
 		this.port = port;
 		this.processId = processId;
+		this.recoveryPort = recoverPort;
 		operation = new ArrayList<String>();
 		values = new ArrayList<Integer>();
 		client = new PaxosClientAll(Constants.clients);
@@ -44,7 +46,7 @@ public class ATM {
 		return balance;
 	}
 	public boolean withdraw(int m) throws IOException{
-		backup();
+		recover();
 		PaxosLeader newPaxos = null;
 		while(newPaxos == null || newPaxos.isMyProposedPermitted()){
 			if(getBalance() < m){
@@ -69,7 +71,8 @@ public class ATM {
 		}
 		return true;
 	}
-	private synchronized void writeLocalLog(String log,int idx){
+	private void writeLocalLog(String log,int idx){
+		logLock.lock();
 		String[] logTkens = log.split(" ");
 		while(idx >= operation.size()){
 			operation.add("");
@@ -77,8 +80,10 @@ public class ATM {
 		}
 		operation.set(idx, logTkens[0].trim());
 		values.set(idx, Integer.parseInt(logTkens[1].trim()));
+		logLock.unlock();
 	}
 	private void updateBalance(){
+		logLock.lock();
 		balance = 0;
 		for(int i = 0;i < operation.size();i++){
 			if(operation.get(i).equals("W")){
@@ -87,18 +92,18 @@ public class ATM {
 				balance += values.get(i);
 			}
 		}
+		logLock.unlock();
 	}
 	public void updateBalance(String log){
+		logLock.lock();
 		String[] op = log.split(" ");
 		operation.add(op[0]);
 		values.add(Integer.parseInt(op[1].trim()));
-		if(op[0].equals("W")){
-			balance -= Integer.parseInt(op[1].trim());
-		} else {
-			balance += Integer.parseInt(op[1].trim());
-		}
+		updateBalance();
+		logLock.unlock();
 	}
 	public void writelog(String action, double value){
+		logLock.lock();
 		try{
 			BufferedWriter out = new BufferedWriter(new FileWriter("log.txt"));
 			if(action.equals("deposit")){
@@ -117,30 +122,41 @@ public class ATM {
 		catch (IOException e){
 			System.out.println("Exception");
 		}
+		logLock.unlock();
 	}
 	
 	
-	public void backup() throws IOException{
-		File log_file = new File("log.txt");
-		BufferedReader br = new BufferedReader(new FileReader(log_file));
-		String line;
-		while((line = br.readLine()) != null)
-			updateBalance(line);
-		br.close();
+	public void recover() throws IOException{
+		for(Node node : Constants.clients){
+			Client.send(node.recoveryPort, "", node.address, new ClientAction() {
+				
+				@Override
+				public void onRecv(String data) {
+					// TODO Auto-generated method stub
+					String[] logs = data.split("\n");
+					for(int i = 0;i < logs.length;i++){
+						writeLocalLog(logs[i],i);
+					}
+				}
+				
+				@Override
+				public void onNotResponse() {
+					// TODO Auto-generated method stub
+					
+				}
+			});
+		}
+		
 	}
 	
-	public void respondBackup() throws IOException{
-		File log_file = new File("log.txt");
-		ServerAction sact = null;
-        DataOutputStream outputStream = new DataOutputStream(new FileOutputStream("log.txt"));
-        outputStream.writeUTF(readFile(log_file));
-		sact.onRecv("BackupRequest", outputStream);
+	public void respondBackup(){
+		new Thread(new Server(recoveryPort, new BackupServerAction())).start();
 	}
 	
-	public String readFile(File file) throws IOException{
+	private String readFile(File file) throws IOException{
 		StringBuilder sb = new StringBuilder((int)file.length());
 		Scanner sc = new Scanner(file);
-		String lineSeperator = System.getProperty("line.seperator");
+		String lineSeperator = "\n";
 		try{
 			while(sc.hasNextLine()){
 				sb.append(sc.nextLine() + lineSeperator);
@@ -154,7 +170,27 @@ public class ATM {
 
 		@Override
 		public void onRecv(String data, DataOutputStream replyStream) {
-						
+			logLock.lock();
+			StringBuffer log = new StringBuffer();
+			int i = 0;
+			for(;i < operation.size() - 1;i++){
+				log.append(operation.get(i))
+				   .append(" ")
+				   .append(values.get(i))
+				   .append("\n");
+			}
+			if(operation.size() > 0){
+				log.append(operation.get(i))
+				   .append(" ")
+				   .append(values.get(i));
+			}
+			try {
+				replyStream.writeUTF(log.toString());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			logLock.unlock();
 		}
 		
 	}
