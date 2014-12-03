@@ -1,11 +1,21 @@
 package atm;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.FileReader;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+//import org.apache.commons.io.FileUtils;
+import java.util.Scanner;
+
 public class ATM {
 	private int balance = 0;
 	private int currentTransId = 0;
@@ -86,11 +96,33 @@ public class ATM {
 	}
 	
 	
-	public void backup(){
-		
+	public void backup(File log_file) throws IOException{
+		BufferedReader br = new BufferedReader(new FileReader(log_file));
+		String line;
+		while((line = br.readLine()) != null)
+			updateBalance(line);
+		br.close();
 	}
-	public void respondBackup(){
-		
+	
+	public void respondBackup(File log_file) throws IOException{
+		ServerAction sact = null;
+        DataOutputStream outputStream = new DataOutputStream(new FileOutputStream("log.txt"));
+        outputStream.writeUTF(readFile(log_file));
+		sact.onRecv("BackupRequest", outputStream);
+	}
+	
+	public String readFile(File file) throws IOException{
+		StringBuilder sb = new StringBuilder((int)file.length());
+		Scanner sc = new Scanner(file);
+		String lineSeperator = System.getProperty("line.seperator");
+		try{
+			while(sc.hasNextLine()){
+				sb.append(sc.nextLine() + lineSeperator);
+			}
+			return sb.toString();
+		}finally{
+			sc.close();
+		}
 	}
 	private class BackupServerAction implements ServerAction{
 
