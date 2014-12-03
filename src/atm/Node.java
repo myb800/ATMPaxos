@@ -32,7 +32,7 @@ public class Node {
 	String address;
 	int port;
 	long id;
-	static Long toNum(String ip, int port){
+	public Long toNum(String ip, int port){
 		Scanner sc = new Scanner(ip).useDelimiter("\\.");
 		return	(sc.nextLong() << 40) + 
 				(sc.nextLong() << 32) +
