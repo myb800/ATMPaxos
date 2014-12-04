@@ -8,7 +8,7 @@ public class Main {
 
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-		ATM atm = new ATM(2005, 1);
+		ATM atm = new ATM(Constants.CLIENTS[0].port, 1, Constants.CLIENTS[0].recoveryPort,Constants.CLIENTS);
 		while(true){
 			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 			String[] op;

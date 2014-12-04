@@ -1,9 +1,13 @@
 package atm;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -95,6 +99,16 @@ public class ATM {
 			}
 		}
 		logLock.unlock();
+	}
+	public void readLog(int idx) throws IOException{
+		logLock.lock();
+		FileInputStream fs = new FileInputStream("onRecvlog.txt");
+		BufferedReader br = new BufferedReader(new InputStreamReader(fs));
+		for(int i = 0; i < idx - 1; i++)
+			br.readLine();
+		String line = br.readLine();
+		writeLocalLog(line, idx);
+		logLock.lock();
 	}
 	public void updateBalance(String log){
 		logLock.lock();
