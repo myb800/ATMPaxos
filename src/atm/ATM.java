@@ -21,6 +21,7 @@ public class ATM {
 	private int processId;
 	private Lock logLock = new ReentrantLock();
 	private Node[] clients;
+	private Server backupServer,paxosServer;
 	public ATM(int port,int processId, int recoverPort,Node[] clients){
 		this.port = port;
 		this.processId = processId;
@@ -40,7 +41,8 @@ public class ATM {
 		});
 		respondBackup();
 		recover();
-		new Thread(new Server(this.port,client)).start();
+		paxosServer = new Server(this.port,client);
+		new Thread(paxosServer).start();
 	}
 	public int getBalance(){
 		updateBalance();
@@ -71,6 +73,11 @@ public class ATM {
 			writeLocalLog(newPaxos.getDecidedVal(), slot);
 		}
 		return true;
+	}
+	public void fail(){
+		backupServer.stop();
+		paxosServer.stop();
+		System.out.println("stop");
 	}
 	private void writeLocalLog(String log,int idx){
 		logLock.lock();
@@ -138,7 +145,7 @@ public class ATM {
 	}
 	
 	
-	public void recover(){
+	private void recover(){
 		for(Node node : clients){
 			Client.send(node.recoveryPort, "", node.address, new ClientAction() {
 				
@@ -164,8 +171,9 @@ public class ATM {
 		
 	}
 	
-	public void respondBackup(){
-		new Thread(new Server(recoveryPort, new BackupServerAction())).start();
+	private void respondBackup(){
+		backupServer = new Server(recoveryPort, new BackupServerAction());;
+		new Thread(backupServer).start();
 	}
 	
 	private class BackupServerAction implements ServerAction{

@@ -14,9 +14,9 @@ public class Client {
 	public static void send(int p,String msg,String serverName,ClientAction cact) {
 		int port = p;
 //		System.out.println("Connecting to " + serverName + " on port " + port);
-			
+		Socket client = null;
 		try {
-			Socket client = new Socket(serverName,port);
+			client = new Socket(serverName,port);
 			client.setSoTimeout(1000);
 //			System.out.println("Just connected to "
 //					+ client.getRemoteSocketAddress());

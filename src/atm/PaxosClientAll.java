@@ -97,11 +97,18 @@ public class PaxosClientAll implements ServerAction{
 				curr.setHasAccepted(true);
 			} else if(msg.type.equals("decide")){
 				PaxosClient curr = sessions.get(msg.id);
-				if(!curr.getStatus().equals("decide")){
-					curr.setStatus("decide");
-					String varName = curr.getVarName();
+				if(curr == null || !curr.getStatus().equals("decide")){
+					if(curr != null){
+						curr.setStatus("decide");
+					}
+					String varName = msg.varName;
 					if(onDecide != null){
-						onDecide.onDecide(varName, msg.id, val.get(varName));
+						onDecide.onDecide(varName, msg.id, msg.val);
+					}
+					if(val.get(varName) == null){
+						val.put(varName, msg.val);
+						acceptBallot.put(varName, new Ballot(1, 1));
+						ballot.put(varName, new Ballot(1, 1));
 					}
 					Log.log("paxos client broadcast:" + "decide," + val.get(varName) + "," + msg.id + "," + varName);
 					for(Node n : clients){
