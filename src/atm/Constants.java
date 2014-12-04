@@ -2,8 +2,8 @@ package atm;
 
 public class Constants {
 	public static final Node[] CLIENTS = new Node[]{
-		new Node("127.0.0.1", 5011, 6011),
-		new Node("127.0.0.1", 5012, 6012),
-		new Node("127.0.0.1", 5013, 6013),
+		new Node("127.0.0.1", 5111, 6111),
+		new Node("127.0.0.1", 5112, 6112),
+		new Node("127.0.0.1", 5113, 6113),
 	};
 }
