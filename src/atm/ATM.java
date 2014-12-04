@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -40,6 +39,7 @@ public class ATM {
 			}
 		});
 		respondBackup();
+		recover();
 		new Thread(new Server(this.port,client)).start();
 	}
 	public int getBalance(){
@@ -47,12 +47,7 @@ public class ATM {
 		return balance;
 	}
 	public boolean withdraw(int m){
-		try {
-			recover();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		recover();
 		PaxosLeader newPaxos = null;
 		while(newPaxos == null || newPaxos.isMyProposedPermitted() == false){
 			if(getBalance() < m){
@@ -108,6 +103,7 @@ public class ATM {
 			br.readLine();
 		String line = br.readLine();
 		writeLocalLog(line, idx);
+		br.close();
 		logLock.lock();
 	}
 	public void updateBalance(String log){
@@ -142,7 +138,7 @@ public class ATM {
 	}
 	
 	
-	public void recover() throws IOException{
+	public void recover(){
 		for(Node node : clients){
 			Client.send(node.recoveryPort, "", node.address, new ClientAction() {
 				
@@ -151,6 +147,9 @@ public class ATM {
 					// TODO Auto-generated method stub
 					String[] logs = data.split("\n");
 					for(int i = 0;i < logs.length;i++){
+						if(logs[i].equals("")){
+							continue;
+						}
 						writeLocalLog(logs[i],i);
 					}
 				}
@@ -176,16 +175,11 @@ public class ATM {
 			logLock.lock();
 			StringBuffer log = new StringBuffer();
 			int i = 0;
-			for(;i < operation.size() - 1;i++){
+			for(;i < operation.size();i++){
 				log.append(operation.get(i))
 				   .append(" ")
 				   .append(values.get(i))
 				   .append("\n");
-			}
-			if(operation.size() > 0){
-				log.append(operation.get(i))
-				   .append(" ")
-				   .append(values.get(i));
 			}
 			try {
 				replyStream.writeUTF(log.toString());

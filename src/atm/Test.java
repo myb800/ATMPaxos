@@ -44,14 +44,20 @@ public class Test {
 		ATM atm2 = new ATM(Constants.CLIENTS[1].port, 2, Constants.CLIENTS[1].recoveryPort,Constants.CLIENTS);
 		atm1.deposit(100);
 		atm2.deposit(100);
-		
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println(atm1.getBalance());
+		ATM atm3 = new ATM(Constants.CLIENTS[2].port, 3, Constants.CLIENTS[2].recoveryPort,Constants.CLIENTS);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println(atm3.getBalance());
 	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
