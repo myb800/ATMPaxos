@@ -23,6 +23,13 @@ public class Main {
 					atm.withdraw(Integer.parseInt(op[1]));
 					System.out.println("withdraw " + op[1] + "; current balance " + atm.getBalance());
 				}
+				else if(op[0].equals("balance")){
+					System.out.println("current balance " + atm.getBalance());
+				}
+				else if(op[0].equals("fail")){
+					atm.fail();
+					System.out.println("the failed node: " + idx);
+				}
 				else
 					System.out.println("error command!");
 			} catch (Exception e) {
