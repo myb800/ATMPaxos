@@ -45,8 +45,10 @@ public class Test {
 		ATM atm2 = new ATM(Constants.CLIENTS[1].port, 2, Constants.CLIENTS[1].recoveryPort, Constants.CLIENTS);
 		atm1.deposit(100);
 		atm2.deposit(100);
+		atm1.withdraw(10);
 		atm1.fail();
 		atm1 = new ATM(Constants.CLIENTS[0].port, 1, Constants.CLIENTS[0].recoveryPort, Constants.CLIENTS);
+		atm2.withdraw(10);
 		System.out.println(atm1.getBalance());
 	}
 	private static void test_ATM2(){
@@ -54,14 +56,10 @@ public class Test {
 		ATM2 atm1 = new ATM2(Constants.CLIENTS[0].port, 1, Constants.CLIENTS[0].recoveryPort, Constants.CLIENTS);
 		ATM2 atm2 = new ATM2(Constants.CLIENTS[1].port, 2, Constants.CLIENTS[1].recoveryPort, Constants.CLIENTS);
 		atm1.deposit(100);
-		atm2.deposit(100);
+		atm1.fail();
+		atm1 = new ATM2(Constants.CLIENTS[0].port, 1, Constants.CLIENTS[0].recoveryPort, Constants.CLIENTS);
+		atm1.deposit(100);
 		atm2.withdraw(100);
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		System.out.println(atm1.getBalance());
 	}
 	public static void main(String[] args) {

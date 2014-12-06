@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 
@@ -32,7 +33,7 @@ public class Client {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			if(e instanceof SocketTimeoutException ||
-					e instanceof EOFException || e instanceof ConnectException) {
+					e instanceof EOFException || e instanceof ConnectException || e instanceof SocketException) {
 				if(cact != null){
 					cact.onNotResponse();
 				}

@@ -15,6 +15,7 @@ public class ATM2 {
 	private int processId;
 	private int paxosPort;
 	private Lock recdLock;
+	private Server recoveryServer,paxosServer;
 	public ATM2(int port,int processId,int recoverPort,Node[] clients){
 		depositRec = new HashMap<String,Integer>();
 		withdrawRec = new ArrayList<Integer>();
@@ -37,8 +38,10 @@ public class ATM2 {
 				withdrawRec.set(idx, Integer.parseInt(val));
 			}
 		});
-		new Thread(new Server(recoverPort, new RecoverAction())).start();
-		new Thread(new Server(port, paxosClientAll)).start();
+		recoveryServer = new Server(recoverPort, new RecoverAction());
+		paxosServer = new Server(port, paxosClientAll);
+		new Thread(recoveryServer).start();
+		new Thread(paxosServer).start();
 		update();
 	}
 	public int getBalance(){
@@ -59,16 +62,26 @@ public class ATM2 {
 	public boolean withdraw(int m){
 		update();
 		PaxosLeader newPaxos = null;
-		while(newPaxos == null || newPaxos.isMyProposedPermitted()){
+		System.out.println(withdrawRec.size());
+		while(newPaxos == null || newPaxos.isMyProposedPermitted() == false){
 			if(getBalance() < m){
 				return false;
 			}
+			int idx =withdrawRec.size();
 			newPaxos = new PaxosLeader(clients, processId + ":" + paxosPort + "-" + withdrawRec.size(), Integer.toString(withdrawRec.size()));
-			newPaxos.runPaxos(Integer.toString(m), new Ballot(1, processId));
+			newPaxos.runPaxos(Integer.toString(m), new Ballot(0, processId));
+			while(idx >= withdrawRec.size()){
+				withdrawRec.add(0);
+			}
+			withdrawRec.set(idx, Integer.parseInt(newPaxos.getDecidedVal()));
 		}
 		
 		
 		return true;
+	}
+	public void fail(){
+		paxosServer.stop();
+		recoveryServer.stop();
 	}
 	private String serializemap(HashMap<String,Integer> map){
 		StringBuffer sb = new StringBuffer();
@@ -163,5 +176,5 @@ public class ATM2 {
 		}
 		
 	}
-
+	
 }
