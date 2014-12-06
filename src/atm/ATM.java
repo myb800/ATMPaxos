@@ -53,6 +53,7 @@ public class ATM {
 		PaxosLeader newPaxos = null;
 		while(newPaxos == null || newPaxos.isMyProposedPermitted() == false){
 			if(getBalance() < m){
+				System.out.println("withdraw FAILURE");
 				return false;
 			}
 			int slot = operation.size();
@@ -60,18 +61,24 @@ public class ATM {
 			newPaxos.runPaxos("W " + m, new Ballot(0, processId));
 			writeLocalLog(newPaxos.getDecidedVal(), slot);
 		}
+		System.out.println("withdraw SUCCESS");
 		return true;
 		
 	}
 	public boolean deposit(int m){
 		PaxosLeader newPaxos = null;
 		while(newPaxos == null || newPaxos.isMyProposedPermitted() == false){
+			if(m < 0){
+				System.out.println("deposit FAILURE");
+				return false;
+			}
 			Log.log("Beginning a new round for deposit");
 			int slot = operation.size();
 			newPaxos = new PaxosLeader(clients, processId + ":" + port + "-" + operation.size() + System.currentTimeMillis(), Integer.toString(slot));
 			newPaxos.runPaxos("D " + m, new Ballot(0, processId));
 			writeLocalLog(newPaxos.getDecidedVal(), slot);
 		}
+		System.out.println("deposit SUCCESS");
 		return true;
 	}
 	public void fail(){
