@@ -62,7 +62,6 @@ public class ATM2 {
 	public boolean withdraw(int m){
 		update();
 		PaxosLeader newPaxos = null;
-		System.out.println(withdrawRec.size());
 		while(newPaxos == null || newPaxos.isMyProposedPermitted() == false){
 			if(getBalance() < m){
 				return false;
@@ -147,14 +146,19 @@ public class ATM2 {
 			Client.send(client.recoveryPort, serializeRecord(), client.address, new RecoverAction());
 		}
 	}
+	public void print(){
+		for(String str : depositRec.keySet()){
+			System.out.println("deposit " + depositRec.get(str));
+		}
+		for(int i : withdrawRec){
+			System.out.println("withdraw " + i);
+		}
+	}
 	private class RecoverAction implements ServerAction,ClientAction{
 
 		@Override
 		public void onRecv(String data, DataOutputStream replyStream) {
-			System.out.println("old:" + serializeRecord());
-			System.out.println("recv:" + data);
 			updateRecord(data);
-			System.out.println("new:" + serializeRecord());
 			try {
 				replyStream.writeUTF(serializeRecord());
 			} catch (IOException e) {

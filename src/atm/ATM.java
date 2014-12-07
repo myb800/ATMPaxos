@@ -1,5 +1,6 @@
 package atm;
 
+import java.awt.Frame;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
@@ -150,7 +151,15 @@ public class ATM {
 		}
 		logLock.unlock();
 	}
-	
+	public void print(){
+		for(int i = 0;i < operation.size();i++){
+			if(operation.get(i).equals("W")){
+				System.out.println("withdraw " + values.get(i));
+			} else {
+				System.out.println("deposit " + values.get(i));
+			}
+		}
+	}
 	
 	private void recover(){
 		for(Node node : clients){

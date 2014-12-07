@@ -59,7 +59,7 @@ public class Test {
 		atm1.fail();
 		atm1 = new ATM2(Constants.CLIENTS[0].port, 1, Constants.CLIENTS[0].recoveryPort, Constants.CLIENTS);
 		atm1.deposit(100);
-		atm2.withdraw(100);
+		atm2.withdraw(120);
 		System.out.println(atm1.getBalance());
 	}
 	public static void main(String[] args) {
