@@ -1,10 +1,12 @@
 package atm;
 
-import java.awt.Frame;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -12,7 +14,7 @@ import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ATM {
+public class ATM extends AbstractATM{
 	private int balance = 0;
 	private ArrayList<String> operation;
 	private ArrayList<Integer> values;
@@ -212,6 +214,39 @@ public class ATM {
 				e.printStackTrace();
 			}
 			logLock.unlock();
+		}
+		
+	}
+	private synchronized void writeLogToFile(){
+		StringBuffer sb = new StringBuffer();
+		logLock.lock();
+		for(int i = 0;i < operation.size();i++){
+			sb.append(operation.get(i)).append(" ").append(values.get(i))
+			  .append("\n");
+		}
+		logLock.unlock();
+		File file = new File("ATMTrans.txt");
+		try {
+			file.createNewFile();
+			FileWriter fw = new FileWriter(file);
+			fw.write(sb.toString());
+			fw.flush();
+			fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	private synchronized void readLogFromFile(){
+		File file = new File("ATMTrans.txt");
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			int i = 0;
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 	}

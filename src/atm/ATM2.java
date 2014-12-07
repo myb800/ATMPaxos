@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ATM2 {
+public class ATM2 extends AbstractATM{
 	private HashMap<String, Integer> depositRec;
 	private ArrayList<Integer> withdrawRec;
 	private PaxosClientAll paxosClientAll;
