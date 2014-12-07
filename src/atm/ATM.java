@@ -255,11 +255,9 @@ public class ATM extends AbstractATM{
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			int i = 0;
 			String line;
-			System.out.println("---------------");
 			while((line = br.readLine()) != null){
 				writeLocalLog(line, i);
 				i++;
-				System.out.println(line);
 			}
 			br.close();
 		} catch (FileNotFoundException e) {

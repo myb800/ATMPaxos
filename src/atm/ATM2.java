@@ -1,6 +1,11 @@
 package atm;
 
+import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,6 +26,7 @@ public class ATM2 extends AbstractATM{
 		withdrawRec = new ArrayList<Integer>();
 		paxosClientAll = new PaxosClientAll(clients);
 		recdLock = new ReentrantLock();
+		readLogFromFile();
 		
 		this.paxosPort = port;
 		this.clients = clients;
@@ -36,6 +42,7 @@ public class ATM2 extends AbstractATM{
 					withdrawRec.add(0);
 				}
 				withdrawRec.set(idx, Integer.parseInt(val));
+				writeLogToFile();
 			}
 		});
 		recoveryServer = new Server(recoverPort, new RecoverAction());
@@ -57,6 +64,7 @@ public class ATM2 extends AbstractATM{
 	public boolean deposit(int m){
 		depositRec.put(processId + "-" + depositRec.size(), m);
 		update();
+		writeLogToFile();
 		return true;
 	}
 	public boolean withdraw(int m){
@@ -75,7 +83,7 @@ public class ATM2 extends AbstractATM{
 			withdrawRec.set(idx, Integer.parseInt(newPaxos.getDecidedVal()));
 		}
 		
-		
+		writeLogToFile();
 		return true;
 	}
 	public void fail(){
@@ -180,5 +188,41 @@ public class ATM2 extends AbstractATM{
 		}
 		
 	}
-	
+	private synchronized void readLogFromFile(){
+		File file = new File("ATM2Trans.txt");
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			String line1 = br.readLine();
+			String line2 = br.readLine();
+			if(line1 != null){
+				if(line2 != null){
+					line1 += "\n";
+					line1 += line2;
+				}
+				updateRecord(line1);
+			}
+			br.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	private void writeLogToFile(){
+		synchronized (ATM2.class) {
+			File file = new File("ATM2Trans.txt");
+			try {
+				FileWriter fw = new FileWriter(file);
+				fw.write(serializeRecord());
+				fw.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
 }
