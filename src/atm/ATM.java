@@ -33,6 +33,8 @@ public class ATM extends AbstractATM{
 		
 		operation = new ArrayList<String>();
 		values = new ArrayList<Integer>();
+		readLogFromFile();
+		
 		client = new PaxosClientAll(clients);
 		client.setOnDecide(new PaxosOnDecide() {
 			
@@ -40,6 +42,7 @@ public class ATM extends AbstractATM{
 			public void onDecide(String varName, String paxosId, String val) {
 				// varName is the slot idx
 				writeLocalLog(val,Integer.parseInt(varName));
+				writeLogToFile();
 			}
 		});
 		respondBackup();
@@ -63,6 +66,7 @@ public class ATM extends AbstractATM{
 			newPaxos = new PaxosLeader(clients, processId + ":" + port + "-" + operation.size() + System.currentTimeMillis(), Integer.toString(slot));
 			newPaxos.runPaxos("W " + m, new Ballot(0, processId));
 			writeLocalLog(newPaxos.getDecidedVal(), slot);
+			writeLogToFile();
 		}
 		System.out.println("withdraw SUCCESS");
 		return true;
@@ -80,6 +84,7 @@ public class ATM extends AbstractATM{
 			newPaxos = new PaxosLeader(clients, processId + ":" + port + "-" + operation.size() + System.currentTimeMillis(), Integer.toString(slot));
 			newPaxos.runPaxos("D " + m, new Ballot(0, processId));
 			writeLocalLog(newPaxos.getDecidedVal(), slot);
+			writeLogToFile();
 		}
 		System.out.println("deposit SUCCESS");
 		return true;
@@ -154,6 +159,7 @@ public class ATM extends AbstractATM{
 		logLock.unlock();
 	}
 	public void print(){
+		logLock.lock();
 		for(int i = 0;i < operation.size();i++){
 			if(operation.get(i).equals("W")){
 				System.out.println("withdraw " + values.get(i));
@@ -161,6 +167,7 @@ public class ATM extends AbstractATM{
 				System.out.println("deposit " + values.get(i));
 			}
 		}
+		logLock.unlock();
 	}
 	
 	private void recover(){
@@ -217,24 +224,28 @@ public class ATM extends AbstractATM{
 		}
 		
 	}
-	private synchronized void writeLogToFile(){
-		StringBuffer sb = new StringBuffer();
-		logLock.lock();
-		for(int i = 0;i < operation.size();i++){
-			sb.append(operation.get(i)).append(" ").append(values.get(i))
-			  .append("\n");
-		}
-		logLock.unlock();
-		File file = new File("ATMTrans.txt");
-		try {
-			file.createNewFile();
-			FileWriter fw = new FileWriter(file);
-			fw.write(sb.toString());
-			fw.flush();
-			fw.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	private void writeLogToFile(){
+		synchronized(ATM.class){
+			StringBuffer sb = new StringBuffer();
+			logLock.lock();
+			for(int i = 0;i < operation.size();i++){
+				sb.append(operation.get(i)).append(" ").append(values.get(i))
+				  .append("\n");
+			}
+			logLock.unlock();
+			File file = new File("ATMTrans.txt");
+			try {
+				file.createNewFile();
+				FileWriter fw = new FileWriter(file);
+				fw.write(sb.toString());
+				System.out.println("====================");
+				System.out.println(sb);
+				fw.flush();
+				fw.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 	}
@@ -243,8 +254,18 @@ public class ATM extends AbstractATM{
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			int i = 0;
-			
+			String line;
+			System.out.println("---------------");
+			while((line = br.readLine()) != null){
+				writeLocalLog(line, i);
+				i++;
+				System.out.println(line);
+			}
+			br.close();
 		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
