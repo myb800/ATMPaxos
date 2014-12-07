@@ -14,7 +14,14 @@ public class Main {
 		Helper.checkLogFile();
 		Constants.config(args[0]);
 		int idx = Integer.parseInt(args[1]);
-		ATM atm = new ATM(Constants.CLIENTS[idx].port, idx, Constants.CLIENTS[idx].recoveryPort,Constants.CLIENTS);
+		int algorithm = Integer.parseInt(args[2]);
+		AbstractATM atm;
+		if(algorithm == 1){
+			atm = new ATM2(Constants.CLIENTS[idx].port, idx, Constants.CLIENTS[idx].recoveryPort,Constants.CLIENTS);
+		}
+		else{
+			atm = new ATM(Constants.CLIENTS[idx].port, idx, Constants.CLIENTS[idx].recoveryPort,Constants.CLIENTS);
+		}
 		for(Node node:Constants.CLIENTS)
 			Client.send(node.port, "Are you alive?", node.address, null);
 		while(true){
