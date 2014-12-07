@@ -11,6 +11,7 @@ import java.net.Socket;
 public class Main {
 
 	public static void main(String[] args) throws IOException {
+		Helper.checkLogFile();
 		Constants.config(args[0]);
 		int idx = Integer.parseInt(args[1]);
 		ATM atm = new ATM(Constants.CLIENTS[idx].port, idx, Constants.CLIENTS[idx].recoveryPort,Constants.CLIENTS);
