@@ -22,11 +22,10 @@ public class Main {
 			try {
 				op = br.readLine().split(" ");
 				if(op[0].equals("deposit")){
-					for(Node node:Constants.CLIENTS)
-						Client.send(node.port, "Are you alive?", node.address, null);
 					initCheck serverActionDeposit = new initCheck();
-					new Thread(new Server(Constants.CLIENTS[idx].port, serverActionDeposit)).start();
-					if(serverActionDeposit.getreplyNum() > 2){
+					for(Node node:Constants.CLIENTS)
+						Client.send(node.port, "Are you alive?", node.address, serverActionDeposit);
+					if(serverActionDeposit.getreplyNum() > Constants.CLIENTS.length / 2){
 					atm.deposit(Integer.parseInt(op[1]));
 					System.out.println("deposit " + op[1] + "; current balance " + atm.getBalance());
 					}
@@ -34,11 +33,10 @@ public class Main {
 						System.out.println("deposit FAILURE: cannot get majority reply.");
 				}	
 				else if(op[0].equals("withdraw")){
+					initCheck serverActionWithdraw = new initCheck();
 					for(Node node:Constants.CLIENTS)
 						Client.send(node.port, "Are you alive?", node.address, null);
-					initCheck serverActionWithdraw = new initCheck();
-					new Thread(new Server(Constants.CLIENTS[idx].port, serverActionWithdraw)).start();
-					if(serverActionWithdraw.getreplyNum() > 2){
+					if(serverActionWithdraw.getreplyNum() > Constants.CLIENTS.length / 2){
 						atm.withdraw(Integer.parseInt(op[1]));
 						System.out.println("withdraw " + op[1] + "; current balance " + atm.getBalance());
 					}
@@ -51,6 +49,13 @@ public class Main {
 				else if(op[0].equals("fail")){
 					atm.fail();
 					System.out.println("the failed node: " + idx);
+					break;
+				}
+				else if(op[0].equals("recover")){
+					atm = new ATM(Constants.CLIENTS[idx].port, idx, Constants.CLIENTS[idx].recoveryPort,Constants.CLIENTS);
+				}
+				else if(op[0].equals("print")){
+					atm.print();
 				}
 				else
 					System.out.println("error command!");
@@ -61,21 +66,18 @@ public class Main {
 		}
 	}
 	
-	private static class initCheck implements ServerAction{
+	private static class initCheck implements ClientAction{
 		private int replyNum = 0;
 		public int getreplyNum(){
 			return replyNum;
 		}
 		@Override
-		public void onRecv(String data, DataOutputStream replyStream) {
-			// TODO Auto-generated method stub
-			try {
-				replyStream.writeUTF("Yes, I am alive!");
-				replyNum++;
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		public void onRecv(String data) {
+			replyNum++;
+		}
+		@Override
+		public void onNotResponse() {
+			
 		}
 	}
 
