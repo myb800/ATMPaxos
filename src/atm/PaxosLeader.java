@@ -18,7 +18,7 @@ public class PaxosLeader {
 	public void runPaxos(String value,Ballot ballot){
 		if(state.equals("prepare")){
 			Prepare prepareAction = new Prepare();
-			Log.log("paxos leader broadcast:" + "prepare," + ballot.toString() + "," + paxosId + "," + varName);
+			//Log.log("paxos leader broadcast:" + "prepare," + ballot.toString() + "," + paxosId + "," + varName);
 			for(Node node:clients){
 				Client.send(node.port, "prepare," + ballot.toString() + "," + paxosId + "," + varName, node.address, prepareAction);				
 			}
@@ -42,7 +42,7 @@ public class PaxosLeader {
 			}
 		} else if(state.equals("propose")){
 			Propose proposeAction = new Propose();
-			Log.log("paxos leader broadcast:" + "accept," + ballot.toString() + "," + value + "," + paxosId + "," + varName);
+			//Log.log("paxos leader broadcast:" + "accept," + ballot.toString() + "," + value + "," + paxosId + "," + varName);
 			for(Node node:clients){
 				Client.send(node.port, "accept," + ballot.toString() + "," + value + "," + paxosId + "," + varName, node.address, proposeAction);				
 			}
@@ -59,7 +59,7 @@ public class PaxosLeader {
 			}
 		} else if(state.equals("decide")){
 			decidedVal = value;
-			Log.log("paxos leader broadcast:" + "decide," + value + "," + paxosId + "," + varName);
+			//Log.log("paxos leader broadcast:" + "decide," + value + "," + paxosId + "," + varName);
 			for(Node node:clients){
 				Client.send(node.port, "decide," + value + "," + paxosId + "," + varName, node.address, null);				
 			}
@@ -85,7 +85,7 @@ public class PaxosLeader {
 		public void onRecv(String data) {
 			// data = ack message
 			Message msg = Message.parse(data);
-			Log.log("paxos leader receive:" + data);
+			//Log.log("paxos leader receive:" + data);
 			if(maxBallot == null || msg.bNum.greaterThan(maxBallot)){
 				maxBallot = msg.bNum;
 				val = msg.val;
@@ -110,7 +110,7 @@ public class PaxosLeader {
 		@Override
 		public void onRecv(String data) {
 			// data = accept message
-			Log.log("paxos leader receive:" + data);
+			//Log.log("paxos leader receive:" + data);
 			vote++;
 		}
 

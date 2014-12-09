@@ -22,7 +22,7 @@ public class PaxosClientAll implements ServerAction{
 	}
 	@Override
 	public void onRecv(String data, DataOutputStream replyStream) {
-		Log.log("paxos client receive:" + data);
+		//Log.log("paxos client receive:" + data);
 		
 		Message msg = Message.parse(data);
 		try {
@@ -39,8 +39,8 @@ public class PaxosClientAll implements ServerAction{
 				PaxosClient newSession = new PaxosClient(msg.id,msg.varName);
 				sessions.put(msg.id, newSession);
 				newSession.setStatus("wait-proposal");
-				Log.log("paxos client send back:" + "ack," + ballot.get(msg.varName).toString() + "," 
-						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id + "," + msg.varName);
+				//Log.log("paxos client send back:" + "ack," + ballot.get(msg.varName).toString() + "," 
+				//		   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id + "," + msg.varName);
 				replyStream.writeUTF("ack," + ballot.get(msg.varName).toString() + "," 
 						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id + "," + msg.varName);
 			} else if(msg.type.equals("prepare") && sessions.containsKey(msg.id)){
@@ -48,8 +48,8 @@ public class PaxosClientAll implements ServerAction{
 					return;
 				}
 				ballot.put(msg.varName, msg.bNum);
-				Log.log("ack," + ballot.get(msg.varName).toString() + "," 
-						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id + "," + msg.varName);
+				//Log.log("ack," + ballot.get(msg.varName).toString() + "," 
+				//		   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id + "," + msg.varName);
 				replyStream.writeUTF("ack," + ballot.get(msg.varName).toString() + "," 
 						   + acceptBallot.get(msg.varName).toString() + "," + val.get(msg.varName) + "," + msg.id + "," + msg.varName);
 			} else if(msg.type.equals("accept")){
@@ -69,14 +69,14 @@ public class PaxosClientAll implements ServerAction{
 					return;
 				}
 				
-				Log.log("paxos client send back:" + "accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id + "," + varName);
+				//Log.log("paxos client send back:" + "accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id + "," + varName);
 				replyStream.writeUTF("accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id + "," + varName);
 				if(curr.isHasAccepted() == true){
 					// TODO need to get dup source if there is recovery
 					curr.setVote(curr.getVote() + 1);
 				}
 				if(curr.getVote() > clients.length / 2){
-					Log.log("paxos client broadcast:" + "decide," + val.get(varName) + "," + msg.id + "," + varName);
+					//Log.log("paxos client broadcast:" + "decide," + val.get(varName) + "," + msg.id + "," + varName);
 					curr.setStatus("decide");
 					acceptBallot.put(msg.varName, msg.bNum);
 					if(onDecide != null){
@@ -89,7 +89,7 @@ public class PaxosClientAll implements ServerAction{
 				if(curr.isHasAccepted() == false){
 					acceptBallot.put(varName,msg.bNum);
 					val.put(varName,msg.val);
-					Log.log("paxos broadcast:" + "accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id + "," + varName);
+					//Log.log("paxos broadcast:" + "accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id + "," + varName);
 					for(Node n : clients){
 						Client.send(n.port, "accept," + ballot.get(varName).toString() + "," + val.get(varName) + "," + msg.id + "," + varName, n.address, null);
 					}
@@ -110,7 +110,7 @@ public class PaxosClientAll implements ServerAction{
 						acceptBallot.put(varName, new Ballot(1, 1));
 						ballot.put(varName, new Ballot(1, 1));
 					}
-					Log.log("paxos client broadcast:" + "decide," + val.get(varName) + "," + msg.id + "," + varName);
+					//Log.log("paxos client broadcast:" + "decide," + val.get(varName) + "," + msg.id + "," + varName);
 					for(Node n : clients){
 						Client.send(n.port, "decide," + val.get(varName) + "," + msg.id + "," + varName, n.address, null);
 					}
