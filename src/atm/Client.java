@@ -18,7 +18,7 @@ public class Client {
 		Socket client = null;
 		try {
 			client = new Socket(serverName,port);
-			client.setSoTimeout(1000);
+			client.setSoTimeout(2000);
 //			System.out.println("Just connected to "
 //					+ client.getRemoteSocketAddress());
 			OutputStream outputStream = client.getOutputStream();
