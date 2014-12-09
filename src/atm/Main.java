@@ -13,6 +13,20 @@ public class Main {
 	public static void main(String[] args) throws IOException {
 		Helper.checkLogFile();
 		Constants.config(args[0]);
+		new Thread(new Server(5555, new ServerAction(){
+
+			@Override
+			public void onRecv(String data, DataOutputStream replyStream) {
+				// TODO Auto-generated method stub
+				try {
+					replyStream.writeUTF("ok!");
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+		})).start();
 		int idx = Integer.parseInt(args[1]);
 		int algorithm = Integer.parseInt(args[2]);
 		AbstractATM atm;
@@ -22,18 +36,17 @@ public class Main {
 		else{
 			atm = new ATM(Constants.CLIENTS[idx].port, idx, Constants.CLIENTS[idx].recoveryPort,Constants.CLIENTS);
 		}
-		for(Node node:Constants.CLIENTS)
-			Client.send(node.port, "Are you alive?", node.address, null);
 		while(true){
 			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 			String[] op;
 			try {
 				op = br.readLine().split(" ");
+				initCheck serverActionDeposit = new initCheck();
+				for(Node node:Constants.CLIENTS)
+					Client.send(node.port, "Are you alive?", node.address, serverActionDeposit);
+				System.out.println("current checkNum: " + serverActionDeposit.getreplyNum());
 				if(op[0].equals("deposit")){
-					initCheck serverActionDeposit = new initCheck();
-					for(Node node:Constants.CLIENTS)
-						Client.send(node.port, "Are you alive?", node.address, serverActionDeposit);
-					if(serverActionDeposit.getreplyNum() > Constants.CLIENTS.length / 2){
+					if(serverActionDeposit.getreplyNum() >= Constants.CLIENTS.length / 2){
 					atm.deposit(Integer.parseInt(op[1]));
 					System.out.println("deposit " + op[1] + "; current balance " + atm.getBalance());
 					}
@@ -44,7 +57,7 @@ public class Main {
 					initCheck serverActionWithdraw = new initCheck();
 					for(Node node:Constants.CLIENTS)
 						Client.send(node.port, "Are you alive?", node.address, null);
-					if(serverActionWithdraw.getreplyNum() > Constants.CLIENTS.length / 2){
+					if(serverActionDeposit.getreplyNum() >= Constants.CLIENTS.length / 2){
 						atm.withdraw(Integer.parseInt(op[1]));
 						System.out.println("withdraw " + op[1] + "; current balance " + atm.getBalance());
 					}
@@ -74,19 +87,19 @@ public class Main {
 		}
 	}
 	
-	private static class initCheck implements ClientAction{
+	/*private static class initCheck implements ClientAction{
 		private int replyNum = 0;
 		public int getreplyNum(){
 			return replyNum;
 		}
 		@Override
-		public void onRecv(String data) {
+		public synchronized void onRecv(String data) {
 			replyNum++;
 		}
 		@Override
 		public void onNotResponse() {
 			
 		}
-	}
+	}*/
 
 }
