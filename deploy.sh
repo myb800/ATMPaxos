@@ -26,5 +26,5 @@ do
 	echo ubuntu@"${ADDRESS[$i]}":~/ips
 	scp -o StrictHostKeyChecking=no -i ${KEY[$i]} ips ubuntu@${ADDRESS[$i]}:~/ips
 	scp -o StrictHostKeyChecking=no -i ${KEY[$i]} atm.jar ubuntu@${ADDRESS[$i]}:~/atm.jar
-	ssh -i ${KEY[$i]} ubuntu@${ADDRESS[$i]} "./atm.jar ips $i &"
+	ssh -i ${KEY[$i]} ubuntu@${ADDRESS[$i]} "java -jar atm.jar ips $i &"
 done

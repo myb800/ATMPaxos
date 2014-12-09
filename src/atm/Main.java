@@ -13,7 +13,8 @@ public class Main {
 	public static void main(String[] args) throws IOException {
 		Helper.checkLogFile();
 		Constants.config(args[0]);
-		new Thread(new Server(5555, new ServerAction(){
+		int idx = Integer.parseInt(args[1]);
+		new Thread(new Server(5555/*Constants.CLIENTS[idx].port*/, new ServerAction(){
 
 			@Override
 			public void onRecv(String data, DataOutputStream replyStream) {
@@ -27,7 +28,6 @@ public class Main {
 			}
 			
 		})).start();
-		int idx = Integer.parseInt(args[1]);
 		int algorithm = Integer.parseInt(args[2]);
 		AbstractATM atm;
 		if(algorithm == 1){
@@ -41,14 +41,14 @@ public class Main {
 			String[] op;
 			try {
 				op = br.readLine().split(" ");
-				initCheck serverActionDeposit = new initCheck();
-				for(Node node:Constants.CLIENTS)
-					Client.send(node.port, "Are you alive?", node.address, serverActionDeposit);
-				System.out.println("current checkNum: " + serverActionDeposit.getreplyNum());
 				if(op[0].equals("deposit")){
-					if(serverActionDeposit.getreplyNum() >= Constants.CLIENTS.length / 2){
-					atm.deposit(Integer.parseInt(op[1]));
-					System.out.println("deposit " + op[1] + "; current balance " + atm.getBalance());
+					initCheck serverActionDeposit = new initCheck();
+					for(Node node:Constants.CLIENTS)
+						Client.send(5555/*node.port*/, "Are you alive?", node.address, serverActionDeposit);
+					System.out.println("current checkNum: " + serverActionDeposit.getreplyNum());
+					if(serverActionDeposit.getreplyNum() > Constants.CLIENTS.length / 2){
+						atm.deposit(Integer.parseInt(op[1]));
+						System.out.println("deposit " + op[1] + "; current balance " + atm.getBalance());
 					}
 					else
 						System.out.println("deposit FAILURE: cannot get majority reply.");
@@ -56,8 +56,9 @@ public class Main {
 				else if(op[0].equals("withdraw")){
 					initCheck serverActionWithdraw = new initCheck();
 					for(Node node:Constants.CLIENTS)
-						Client.send(node.port, "Are you alive?", node.address, null);
-					if(serverActionDeposit.getreplyNum() >= Constants.CLIENTS.length / 2){
+						Client.send(5555/*node.port*/, "Are you alive?", node.address, serverActionWithdraw);
+					System.out.println("current checkNum: " + serverActionWithdraw.getreplyNum());
+					if(serverActionWithdraw.getreplyNum() > Constants.CLIENTS.length / 2){
 						atm.withdraw(Integer.parseInt(op[1]));
 						System.out.println("withdraw " + op[1] + "; current balance " + atm.getBalance());
 					}

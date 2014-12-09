@@ -79,7 +79,7 @@ public class ATM extends AbstractATM{
 				System.out.println("deposit FAILURE");
 				return false;
 			}
-			Log.log("Beginning a new round for deposit");
+			//Log.log("Beginning a new round for deposit");
 			int slot = operation.size();
 			newPaxos = new PaxosLeader(clients, processId + ":" + port + "-" + operation.size() + System.currentTimeMillis(), Integer.toString(slot));
 			newPaxos.runPaxos("D " + m, new Ballot(0, processId));
